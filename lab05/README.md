@@ -122,52 +122,97 @@ Walk through the key Copilot features demonstrated in the reference repo. The go
 ### Your tasks
 
 1. **Feature inventory.** Ask Chat:
+
+   **GitHub path:**
    ```
    Using MCP, read the docs/ folder in colindembovsky/octocat-supply-copilot-demo.
    Create a table of every Copilot feature the demo showcases, what part of
    the codebase demonstrates it, and which SDLC phase it belongs to.
    ```
 
+   **Azure DevOps path:**
+   ```
+   Using MCP, read the docs/ folder in my ADO repo.
+   Create a table of every Copilot feature the codebase demonstrates,
+   what part of the repo shows it, and which SDLC phase it belongs to.
+   ```
+
 2. **Pick an open issue to work on.** Ask Chat:
+
+   **GitHub path:**
    ```
    Using MCP, list the open issues in my fork of octocat-supply-copilot-demo.
    Recommend the best one to tackle as a first contribution — something
    self-contained, clearly scoped, and representative of the codebase.
    ```
-   Note the issue number. You will use it in Parts 3 and 4.
 
-3. **Compare agent outputs.** Run the same prompt twice — once with the GitHub MCP server active, once without (disable it temporarily in settings). Compare the depth and accuracy of the two responses.
+   **Azure DevOps path:**
+   ```
+   Using MCP, list the active work items assigned to me in my ADO project.
+   Recommend the best one to tackle as a first contribution — something
+   self-contained, clearly scoped, and representative of the codebase.
+   ```
+
+   Note the issue/work item number. You will use it in Parts 3 and 4.
+
+3. **Compare agent outputs.** Run the same prompt twice — once with the MCP server active, once without (disable it temporarily in settings). Compare the depth and accuracy of the two responses.
 
    > **Discussion:** When does grounding with MCP tools matter most?
 
 ### Takeaway
-You now have a real issue scoped and a research summary in hand. The rest of the lab drives this issue all the way to a merged PR.
+You now have a real issue (or work item) scoped and a research summary in hand. The rest of the lab drives it all the way to a merged PR.
 
 ---
 
-## Part 2 — Connect Agents to the GitHub MCP Server (10 min)
+## Part 2 — Connect Agents to the MCP Server (10 min)
 
-The GitHub MCP server exposes tools like `search_repositories`, `get_file_contents`, `list_issues`, `create_issue`, and `create_pull_request` directly to Chat agents. This is what makes agents **grounded** in your actual GitHub context instead of relying solely on model knowledge.
+The MCP server exposes tools like `search_repositories`, `get_file_contents`, `list_issues`, `create_issue`, and `create_pull_request` directly to Chat agents. This is what makes agents **grounded** in your actual source-control context instead of relying solely on model knowledge.
 
 ### Your tasks
 
 1. **Verify tool availability.** In Copilot Chat, type:
+
+   **GitHub path:**
    ```
    What GitHub tools do you have access to right now?
    ```
-   You should see a list of MCP-provided tools (search, issues, PRs, code, etc.).
+
+   **Azure DevOps path:**
+   ```
+   What Azure DevOps tools do you have access to right now?
+   ```
+
+   You should see a list of MCP-provided tools (search, issues/work items, PRs, code, etc.).
 
 2. **Explore the repo structure.** Ask:
+
+   **GitHub path:**
    ```
    Using the GitHub MCP tools, fetch the README and list the top-level
    directories of my fork of octocat-supply-copilot-demo.
    Summarise what the application does and its tech stack.
    ```
+
+   **Azure DevOps path:**
+   ```
+   Using the Azure DevOps MCP tools, fetch the README and list the top-level
+   directories of my ADO repo.
+   Summarise what the application does and its tech stack.
+   ```
+
    The agent will call `get_file_contents` and `list_directory` live — watch the tool call annotations in Chat.
 
-3. **Fetch the issue you chose in Part 1.** Ask:
+3. **Fetch the issue/work item you chose in Part 1.** Ask:
+
+   **GitHub path:**
    ```
    Fetch issue #<number> from my fork of octocat-supply-copilot-demo.
+   Identify every file likely involved in the fix and explain why.
+   ```
+
+   **Azure DevOps path:**
+   ```
+   Fetch work item #<number> from my ADO project.
    Identify every file likely involved in the fix and explain why.
    ```
 
@@ -178,7 +223,7 @@ The GitHub MCP server exposes tools like `search_repositories`, `get_file_conten
    ```
 
 ### Takeaway
-When an agent has MCP tools, it can **act on real data** rather than hallucinating structure. The GitHub MCP server turns Chat into a live interface to your repositories.
+When an agent has MCP tools, it can **act on real data** rather than hallucinating structure. The MCP server turns Chat into a live interface to your repositories — whether on GitHub or Azure DevOps.
 
 ---
 
@@ -242,13 +287,24 @@ You should see something like this:
 
 ### Your tasks
 
-1. **Research the issue with `rpi-agent`.** In Chat with the GitHub MCP server active:
+1. **Research the issue with `rpi-agent`.** In Chat with the MCP server active:
+
+   **GitHub path:**
    ```
    Issue #<number> in my fork of octocat-supply-copilot-demo.
    Fetch the issue and all relevant source files via MCP.
    Research the problem thoroughly, produce a detailed implementation plan,
    then implement the fix.
    ```
+
+   **Azure DevOps path:**
+   ```
+   Work item #<number> in my ADO project.
+   Fetch the work item and all relevant source files via MCP.
+   Research the problem thoroughly, produce a detailed implementation plan,
+   then implement the fix.
+   ```
+
    Watch the three phases: **Research** (agent fetches files) → **Plan** (agent proposes steps, pauses for approval) → **Implement** (agent writes code).
 
 2. **Review the plan before implementation.** After the Research phase the agent will present a plan. Check it covers:
@@ -277,7 +333,9 @@ The **Coding Agent** is the highest-autonomy mode: given a GitHub Issue, it auto
 
 ### Your tasks
 
-1. **Create a new issue in your fork.** Using the GitHub MCP tools from Chat:
+1. **Create a new issue/work item.** Using the MCP tools from Chat:
+
+   **GitHub path:**
    ```
    Create a GitHub issue in my fork of octocat-supply-copilot-demo.
    Title: "Add low-stock alert when inventory falls below reorder threshold"
@@ -285,14 +343,33 @@ The **Coding Agent** is the highest-autonomy mode: given a GitHub Issue, it auto
    the system should emit a low-stock alert event. Add the logic and
    a unit test covering the threshold boundary.
    ```
-   Note the issue number returned.
+
+   **Azure DevOps path:**
+   ```
+   Create a work item in my ADO project.
+   Title: "Add low-stock alert when inventory falls below reorder threshold"
+   Description: When a product's quantity drops below its reorder_threshold,
+   the system should emit a low-stock alert event. Add the logic and
+   a unit test covering the threshold boundary.
+   ```
+
+   Note the issue/work item number returned.
 
 2. **Assign the issue to the Coding Agent.**
+
+   **GitHub path:**
    - Open the issue on GitHub.com (or via the GitHub Pull Requests extension).
    - Assign it to **@github-copilot**.
    - Alternatively, in Chat:
      ```
      Assign issue #<number> in my fork to github-copilot using the MCP tools.
+     ```
+
+   **Azure DevOps path:**
+   - The Coding Agent currently requires GitHub Issues. For ADO workflows, use the `rpi-agent` from Part 3 to drive the implementation locally, then create a pull request via MCP:
+     ```
+     Create a pull request in my ADO repo linking work item #<number>.
+     Include the changes from my current branch.
      ```
 
 3. **Watch the agent work.** The Coding Agent will:
@@ -321,16 +398,17 @@ The Coding Agent collapses the Research → Plan → Implement loop into a **sin
 
 ## Lab Complete!
 
-- ✅ Forked the octocat-supply-copilot-demo as your working codebase
-- ✅ Configured and verified the GitHub MCP server connection
+- ✅ Forked the octocat-supply-copilot-demo (or cloned your ADO repo) as your working codebase
+- ✅ Configured and verified the MCP server connection (GitHub or Azure DevOps)
 - ✅ Used MCP tools to ground agents in live repository data
-- ✅ Drove a real issue end-to-end with the HVE `rpi-agent` (Research → Plan → Implement)
+- ✅ Drove a real issue/work item end-to-end with the HVE `rpi-agent` (Research → Plan → Implement)
 - ✅ Ran the Coding Agent autonomously: issue → implementation → PR → review
 ---
 
 ## Reference
 
 - [GitHub MCP server](https://github.com/modelcontextprotocol/servers/tree/main/src/github)
+- [Azure DevOps MCP server](https://github.com/nicepkg/azure-devops-mcp)
 - [HVE Core extension](https://marketplace.visualstudio.com/items?itemName=ise-hve-essentials.hve-core)
 - [Copilot CLI `/research` command](https://docs.github.com/en/copilot/concepts/agents/copilot-cli/research)
 - [octocat-supply-copilot-demo](https://github.com/colindembovsky/octocat-supply-copilot-demo)
