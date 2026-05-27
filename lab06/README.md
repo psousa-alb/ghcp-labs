@@ -554,15 +554,27 @@ Use this after all stories are Done to generate evidence and post the release si
 @sprint-auditor epic=SCRUM-1 track=jira
 ```
 
+**Track A (your stories only):**
+
+```text
+@sprint-auditor epic=SCRUM-1 track=jira assignee=me
+```
+
 **Track B:**
 
 ```text
 @sprint-auditor epic=<EPIC-ID> track=ado
 ```
 
-The agent will: list all stories → verify all Done → run 8/8 tests → generate
-`evidence/fr001_scheduler_run.json` → post the release sign-off comment → close the
-epic.
+**Track B (your stories only):**
+
+```text
+@sprint-auditor epic=<EPIC-ID> track=ado assignee=me
+```
+
+The agent will: list stories (scoped to you if `assignee=me`) → verify all Done →
+run 8/8 tests → generate `evidence/fr001_scheduler_run.json` → post the release
+sign-off comment → close the epic.
 
 If any story is not Done or any test fails, the agent stops with a blocking report
 instead of posting the sign-off.
@@ -579,15 +591,27 @@ Use this to complete the entire sprint in one invocation.
 @sprint-runner track=jira
 ```
 
+**Track A (your stories only):**
+
+```text
+@sprint-runner track=jira assignee=me
+```
+
 **Track B:**
 
 ```text
 @sprint-runner track=ado
 ```
 
-The agent will execute all five stories in dependency order, run the full test suite
-after each, generate evidence, and post the release sign-off — without stopping for
-human input.
+**Track B (your stories only):**
+
+```text
+@sprint-runner track=ado assignee=me
+```
+
+The agent will execute stories in dependency order (filtered to those assigned to you
+if `assignee=me`), run the full test suite after each, generate evidence, and post
+the release sign-off — without stopping for human input.
 
 ---
 

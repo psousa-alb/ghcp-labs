@@ -1,7 +1,7 @@
 ---
 description: "Autonomous release-gate agent: confirms all lab06 sprint stories are Done, generates the evidence artifact, and posts a go/no-go release sign-off on the epic."
 tools: [read, terminal, mcp_jira, mcp_azure_devops]
-argument-hint: "epic=SCRUM-1 track=jira  |  epic=<EPIC-ID> track=ado"
+argument-hint: "epic=SCRUM-1 track=jira [assignee=me]  |  epic=<EPIC-ID> track=ado [assignee=me]"
 ---
 
 # Sprint Auditor
@@ -12,13 +12,20 @@ release sign-off on the epic — without human prompts between steps.
 
 ## Required Steps
 
-### Step 1 — List all sprint stories
+### Step 1 — List sprint stories
 
-**Jira:** execute JQL `project = SCRUM AND issuetype = Story`.
+Check whether `assignee=me` was provided in the user's input.
 
-**ADO:** search work items in the sprint project with type Story or Task.
+**Jira (all stories):** execute JQL `project = SCRUM AND issuetype = Story`.
 
-For each story note the key/ID, summary/title, and current status.
+**Jira (assignee=me):** execute JQL `project = SCRUM AND issuetype = Story AND assignee = currentUser()`.
+
+**ADO (all stories):** search work items in the sprint project with type Story or Task.
+
+**ADO (assignee=me):** search work items with type Story or Task and `[System.AssignedTo] = @me`.
+
+For each story note the key/ID, summary/title, and current status. All verification
+in Step 2 applies only to the stories returned by this query.
 
 ### Step 2 — Verify all Done
 

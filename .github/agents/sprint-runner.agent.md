@@ -1,7 +1,7 @@
 ---
 description: "Autonomous full-sprint orchestrator for lab06: lists all To Do stories, implements each function in turn, generates evidence, and posts the release sign-off — completing the entire sprint in one invocation."
 tools: [read, edit, terminal, mcp_jira, mcp_azure_devops]
-argument-hint: "track=jira  |  track=ado  (and your epic key if needed)"
+argument-hint: "track=jira [assignee=me]  |  track=ado [assignee=me]  (add assignee=me to run only your assigned stories)"
 ---
 
 # Sprint Runner
@@ -37,9 +37,15 @@ Always implement stories in this order to satisfy data dependencies:
 
 ### Step 1 — List all To Do stories
 
-**Jira:** execute JQL `project = SCRUM AND issuetype = Story AND status = "To Do"`.
+Check whether `assignee=me` was provided in the user's input.
 
-**ADO:** search work items in the project with state "To Do" or "New".
+**Jira (all stories):** execute JQL `project = SCRUM AND issuetype = Story AND status = "To Do"`.
+
+**Jira (assignee=me):** execute JQL `project = SCRUM AND issuetype = Story AND status = "To Do" AND assignee = currentUser()`.
+
+**ADO (all stories):** search work items in the project with state "To Do" or "New".
+
+**ADO (assignee=me):** search work items with state "To Do" or "New" and `[System.AssignedTo] = @me`.
 
 List the results. If none remain, skip to Step 3 (generate evidence) and run the
 auditor flow.
