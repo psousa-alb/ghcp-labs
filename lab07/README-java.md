@@ -1,4 +1,4 @@
-# Lab 07 - Release Workflow and Infrastructure as Code (Java)
+# Lab 07 - Copilot for Deployment (Java)
 
 **Duration:** ~90 min  
 **SDLC Phase:** Integration → Deployment → Release  
@@ -8,17 +8,18 @@
 
 ---
 
-Lab 07 is self-contained. It focuses on operationalizing release work by opening a PR with supply chain security awareness, scanning dependencies for vulnerabilities, building containerized configurations in YAML/Docker Compose, and expressing infrastructure as code with GitOps and observability patterns. Together, these exercises simulate a full SDLC path from implementation to production readiness using 2026 DevOps best practices.
+Lab 07 is self-contained. **Copilot is your pair programmer throughout**: it generates the Bicep or Terraform that provisions your infrastructure, scaffolds the CI/CD pipeline YAML that enforces SBOM and CVE gates, and helps reason about cost before any resource is created. The lab covers the full path from a local commit to a pipeline-gated, infrastructure-validated, Copilot-assisted deployment — using a Java (Maven/Gradle) toolchain throughout.
 
 ## What You'll Practice
 
 | Part | Skill | Time | Copilot Feature |
 |------|-------|------|-----------------|
-| **1** | Create a PR with supply chain context | 15 min | Chat PR workflow + SBOM awareness |
+| **1** | Branch setup | 5 min | Copilot PR scaffold |
 | **2** | Supply chain security (hands-on) | 12 min | SBOM generation + vulnerability scanning |
-| **3** | YAML + container fundamentals | 25 min | Chat + Docker Compose + inline YAML |
-| **4** | IaC + GitOps + observability | 30 min | MCP tools + code samples + monitoring |
-| **5** | Merge, validate, cost review | 8 min | Chat verification + cost analysis |
+| **3** | Docker Compose — containerised deployment | 15 min | Copilot chat + inline YAML |
+| **4** | CI/CD pipeline as code | 20 min | GitHub Actions / Azure Pipelines YAML authoring |
+| **5** | IaC + GitOps | 25 min | MCP tools + code samples |
+| **6** | Open PR, validate, cost review, deploy | 13 min | Chat verification + cost analysis + deployment |
 
 ---
 
@@ -27,26 +28,27 @@ Lab 07 is self-contained. It focuses on operationalizing release work by opening
 ```bash
 cd lab07
 
-# Maven
-mvn install
-
-# Or Gradle
-./gradlew build
+# Verify Java and build tools are available
+java -version        # expect Java 17+
+mvn -version         # Maven — or use Gradle below
+# ./gradlew --version  # uncomment if using Gradle
 ```
+
+> **Note:** There is no `pom.xml` or `build.gradle` in this directory yet. You create your build file in Part 2 as the first exercise step.
 
 ---
 
 ## The Scenario
 
-You've got a working release artifact set for Lab 07. Now it's time to:
+You're an engineer taking a feature from a local commit to a production-ready deployment. **Copilot is your pair programmer for every artifact**: it generates the IaC that provisions resources, scaffolds the pipeline YAML that enforces security gates, and helps you reason about cost before any resource is created.
 
-1. **Create a PR** with supply chain security context
-2. **Generate a bill-of-materials** and scan dependencies for vulnerabilities
-3. **Build containerized configurations** with YAML and Docker Compose
-4. **Define infrastructure as code** with GitOps and observability patterns (Bicep or Terraform)
-5. **Validate and cost-estimate** everything locally
-
-This mirrors a real 2026 DevOps pipeline where infrastructure, containers, and monitoring are defined as versioned code with security-first practices.
+Your path through the lab:
+1. **Create a feature branch** — your unit of deployable change
+2. **Scan the supply chain** — generate an SBOM and surface CVEs before the pipeline does
+3. **Containerise the service** — Docker Compose with Copilot-generated YAML for a Spring Boot app
+4. **Author the CI/CD pipeline** — build → scan → validate-iac → approval → deploy stages
+5. **Provision infrastructure** — Bicep or Terraform generated and validated with Copilot + MCP
+6. **Open the PR and ship** — real artifacts, enforced gates, Copilot-assisted cost review
 
 ## Lab 07 Starter Artifacts
 
@@ -55,10 +57,10 @@ This lab is self-contained. Everything you need is created locally during the ex
 ### What you'll produce
 
 1. `pom.xml` (Maven) or `build.gradle` (Gradle) for dependency scanning
-2. `config.yml` for generic YAML practice
-3. `docker-compose.yml` for local container orchestration
-4. `main.bicep` or `main.tf` for local IaC authoring
-5. Optional local evidence notes in `SECURITY_SCAN.md` and `COST_ESTIMATE.md`
+2. `docker-compose.yml` for containerised deployment
+3. `.github/workflows/lab07-pipeline.yml` (or `azure-pipelines.yml`) — CI/CD pipeline with supply-chain gates
+4. `main.bicep` or `main.tf` — IaC generated with Copilot and validated locally
+5. Optional evidence notes in `SECURITY_SCAN.md` and `COST_ESTIMATE.md`
 
 ### Copy/paste checkpoints for your PR description
 
@@ -97,60 +99,32 @@ Use these prompts with Copilot during PR review:
 
 ---
 
-## Part 1 — Create a Pull Request (15 min)
+## Part 1 — Branch Setup (5 min)
+
+Create your working branch now. The PR opens in Part 6, once real artifacts exist — not on an empty commit.
 
 ### Your tasks
 
-1. **Create a feature branch:**
+1. **Create and track your feature branch:**
    ```bash
    git checkout -b lab07/pr-workflow
-   git commit --allow-empty -m "lab07: Add CI/CD and IaC"
+   git push -u origin lab07/pr-workflow
    ```
 
-2. **Push your branch** (same for everyone):
-   ```bash
-   git push origin lab07/pr-workflow
+2. **Ask Copilot to draft your PR description** (you’ll paste it when opening the PR in Part 6):
    ```
-
-3. **Open a PR — follow the path for your team's setup:**
-
-   > **Group A — GitHub for code, Azure DevOps for PM**
-   >
-   > - Open a PR on GitHub (repository → Pull requests → New pull request)
-   > - Or use Copilot Chat → `/createPullRequest` to generate the PR directly from VS Code
-   > - Reference work items with `AB#<ID>` (e.g., `AB#42`) — GitHub links automatically to Azure DevOps
-
-   > **Group B — Azure DevOps for code, Jira for PM**
-   >
-   > - Open a PR in Azure DevOps (Repos → Pull requests → New pull request)
-   > - Copilot Chat's `/createPullRequest` command targets the active repository — works with Azure DevOps Repos when the repo remote is an ADO URL
-   > - Reference Jira tickets in the PR description as `PROJ-<ID>` (e.g., `PROJ-42`)
-
-4. **Use this PR description template** (replace placeholders for your tracker):
-   ```markdown
-   ## Description
-   Lab 07 implementation: CI/CD pipeline and infrastructure setup
-
-   ## Changes
-   - YAML configuration and release workflow updates
-   - Infrastructure-as-Code (Bicep/Terraform) provisioning
-   - Dependency automation policy and review guidance
-
-   ## Related Issues
-   <!-- Group A (ADO work items): AB#42 -->
-   <!-- Group B (Jira):           PROJ-42 -->
-   <!-- GitHub Issues:            Closes #42 -->
+   Chat prompt: “Draft a GitHub PR description for a lab07 deployment branch (Java/Spring Boot).
+   Include sections: Description, Changes (SBOM, pipeline YAML, IaC),
+   Supply Chain Security checklist, Cost Estimate placeholder.
+   Use markdown. Keep it under 30 lines.”
    ```
-
-5. **Request code review:**
-   - Mention reviewers: `@<reviewer>`
-   - Request feedback on: workflow logic, infrastructure code, security practices
+   Save the draft — you’ll fill in real findings as you work through the lab.
 
 ---
 
 ## Part 2 — Supply Chain Security: SBOM & Vulnerability Scanning (12 min)
 
-Modern DevOps requires supply chain security awareness. You'll generate a bill-of-materials (SBOM) and scan for vulnerabilities—practices that are mandatory in 2026.
+Modern DevOps requires supply chain security awareness. You'll generate a bill-of-materials (SBOM) and scan for vulnerabilities — practices that are now standard in enterprise pipelines.
 
 ### What is an SBOM?
 
@@ -313,68 +287,15 @@ Document this in your PR description:
 
 ### Key Insight
 
-Supply chain security is not optional in 2026. SBOM + scanning are now standard practices in enterprise DevOps.
+Supply chain security is not optional. SBOM generation and vulnerability scanning are standard practices in enterprise DevOps.
 
 ---
 
-## Part 3 — YAML & Container Fundamentals (25 min)
+## Part 3 — Docker Compose: Containerised Deployment (15 min)
 
-YAML is the lingua franca of infrastructure and DevOps. By 2026, YAML is inseparable from containerization. This part teaches you YAML syntax and applies it to Docker Compose—a practical container orchestration tool.
+Docker Compose defines your entire service topology as YAML — the same format as CI/CD pipeline jobs (Part 4) and IaC modules (Part 5). Copilot generates the file; your job is to validate, understand, and commit it.
 
-### Subsection A: YAML Essentials (10 min)
-
-#### Your tasks
-
-1. **Create a generic YAML configuration file:**
-   ```bash
-   touch config.yml
-   ```
-
-2. **Use Copilot to create a well-structured YAML file:**
-   - Chat prompt:
-     ```
-     Create a comprehensive YAML file that demonstrates:
-     - Top-level keys and nested structures
-     - Lists and arrays
-     - Key-value pairs with various data types (strings, numbers, booleans)
-     - Comments explaining each section
-     - Proper indentation (2-space standard)
-
-     Make it a generic configuration file (not specific to one tool).
-     Include a description, metadata, configuration section, and rules.
-     ```
-
-3. **YAML essentials to understand:**
-
-   | Concept | Example |
-   |---------|---------|
-   | **Key-Value Pairs** | `name: auth-service` |
-   | **Nesting** | Indentation defines hierarchy |
-   | **Lists** | `- item1` on separate lines with `-` |
-   | **Strings** | `"text"` or `'text'` or unquoted |
-   | **Numbers** | `42`, `3.14` (no quotes) |
-   | **Booleans** | `true`, `false`, `yes`, `no` |
-   | **Null** | `~` or `null` |
-   | **Comments** | `# This is a comment` |
-
-4. **Review and validate:**
-   - Check **indentation consistency** (spaces, not tabs!)
-   - Verify **no trailing spaces**
-   - Ask Copilot: **"Validate this YAML for syntax errors"**
-   - Ask: **"Explain best practices I should follow in YAML"**
-
-5. **Commit your generic config:**
-   ```bash
-   git add config.yml
-   git commit -m "lab07: Add YAML configuration file"
-   git push origin lab07/pr-workflow
-   ```
-
-### Subsection B: Docker Compose — YAML in Action (15 min)
-
-Docker Compose is production-grade containerization defined entirely in YAML. This teaches you YAML in a real deployment scenario.
-
-#### Your tasks
+### Your tasks
 
 1. **Create a Docker Compose file:**
    ```bash
@@ -420,7 +341,7 @@ Docker Compose is production-grade containerization defined entirely in YAML. Th
    # "Validate this docker-compose.yml for syntax and best practices"
    ```
 
-5. **Understand why Docker Compose matters in 2026:**
+5. **Understand why Docker Compose matters:**
    - **Local parity**: Developers test exactly what runs in production
    - **Container standards**: YAML + containers are the deployment baseline
    - **Orchestration foundation**: Docker Compose is the bridge to Kubernetes and production orchestration
@@ -435,15 +356,267 @@ Docker Compose is production-grade containerization defined entirely in YAML. Th
 
 ### Key Insight
 
-YAML + containers are inseparable in 2026. Mastering both is essential for modern deployment workflows.
+Docker Compose gives you a reproducible, infrastructure-parity environment in a single YAML file. The same patterns — named services, environment variables, health checks — appear in Kubernetes manifests and cloud container services.
 
 ---
 
-## Part 4 — Infrastructure-as-Code + GitOps + Observability (30 min)
+## Part 4 — CI/CD Pipeline as Code (20 min)
 
-Modern infrastructure must be **versioned**, **auditable**, and **observable**. This section teaches IaC fundamentals while introducing GitOps patterns and monitoring—the three pillars of 2026 DevOps.
+A markdown checklist is a reminder. A required status check is a **contract**. This part closes that gap: you'll author the pipeline YAML so that SBOM generation, CVE scanning, and IaC validation are enforced job gates — not aspirational bullet points.
 
-### Subsection A: Infrastructure-as-Code Fundamentals (20 min)
+### Pipeline structure
+
+```
+build → scan → validate-iac → (manual-approval) → deploy
+```
+
+Each job depends on the previous one (`needs:`). A CVE above the threshold fails `scan`, which prevents `validate-iac` from starting, which prevents the approval gate from appearing. Evidence artifacts are uploaded with `if: failure()` so reviewers can inspect findings in the run.
+
+---
+
+### Your tasks
+
+#### Task 1: Author the pipeline YAML (10 min)
+
+**GitHub Actions track:**
+
+1. Create the workflow file:
+   ```bash
+   mkdir -p .github/workflows
+   touch .github/workflows/lab07-pipeline.yml
+   ```
+
+2. Use Copilot to scaffold it:
+   ```
+   Chat prompt: "Create a GitHub Actions workflow named 'Lab07 Supply-Chain CI/CD'
+   triggered on push to lab07/pr-workflow and pull_request to main.
+
+   Define these jobs in sequence using 'needs:':
+
+   build:
+     - checkout, setup Java 17 (temurin distribution)
+     - build with Maven: mvn -f lab07/pom.xml package -DskipTests
+     - generate CycloneDX SBOM: mvn -f lab07/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+     - upload lab07/target/bom.xml as artifact 'sbom'
+
+   scan:
+     - download artifact 'sbom'
+     - run OWASP Dependency Check: mvn -f lab07/pom.xml org.owasp:dependency-check-maven:check
+     - upload lab07/target/dependency-check-report.html as artifact 'cve-report' using 'if: failure()'
+     - add a step with 'if: failure()' that prints ::error:: and exits 1
+
+   validate-iac:
+     - if hashFiles('lab07/main.bicep') != '', run: az bicep install && az bicep build --file lab07/main.bicep
+     - if hashFiles('lab07/main.tf') != '', run: cd lab07 && terraform init -backend=false && terraform validate
+     - add a step with 'if: failure()' that prints ::error:: IaC validation failed
+
+   manual-approval:
+     - runs-on: ubuntu-latest, environment: production
+     - single step: echo 'All gates passed. Pending approval.'
+
+   deploy:
+     - dry-run only: echo 'Would run: az deployment group create --what-if / terraform plan'
+     - no real deployment"
+   ```
+
+3. Review the generated file against this reference structure:
+   ```yaml
+   name: Lab07 Supply-Chain CI/CD
+
+   on:
+     push:
+       branches: [lab07/pr-workflow]
+     pull_request:
+       branches: [main]
+
+   jobs:
+     build:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-java@v4
+           with:
+             java-version: '17'
+             distribution: 'temurin'
+         - name: Build (skip tests)
+           run: mvn -f lab07/pom.xml package -DskipTests
+         - name: Generate SBOM (CycloneDX)
+           run: mvn -f lab07/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+         - uses: actions/upload-artifact@v4
+           with: { name: sbom, path: lab07/target/bom.xml }
+
+     scan:
+       runs-on: ubuntu-latest
+       needs: build
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-java@v4
+           with:
+             java-version: '17'
+             distribution: 'temurin'
+         - uses: actions/download-artifact@v4
+           with: { name: sbom, path: lab07/target/ }
+         - name: OWASP Dependency Check
+           run: mvn -f lab07/pom.xml org.owasp:dependency-check-maven:check
+         - name: Upload CVE report on failure
+           if: failure()
+           uses: actions/upload-artifact@v4
+           with: { name: cve-report, path: lab07/target/dependency-check-report.html }
+         - name: Surface CVE failures
+           if: failure()
+           run: |
+             echo "::error::CVE scan failed. Download the cve-report artifact for details."
+             exit 1
+
+     validate-iac:
+       runs-on: ubuntu-latest
+       needs: scan
+       steps:
+         - uses: actions/checkout@v4
+         - name: Validate Bicep
+           if: hashFiles('lab07/main.bicep') != ''
+           run: az bicep install && az bicep build --file lab07/main.bicep
+         - name: Validate Terraform
+           if: hashFiles('lab07/main.tf') != ''
+           run: |
+             cd lab07
+             terraform init -backend=false && terraform validate
+         - name: Surface IaC errors
+           if: failure()
+           run: echo "::error::IaC validation failed — fix before requesting approval."
+
+     manual-approval:
+       runs-on: ubuntu-latest
+       needs: validate-iac
+       environment: production   # configure Required reviewers in Settings → Environments
+       steps:
+         - run: echo "All gates passed. Awaiting reviewer approval."
+
+     deploy:
+       runs-on: ubuntu-latest
+       needs: manual-approval
+       steps:
+         - uses: actions/checkout@v4
+         - name: Dry-run deploy (no real resources)
+           run: |
+             echo "Would run: az deployment group create --what-if ..."
+             echo "Or: terraform plan -out=tfplan"
+   ```
+
+   > **Gradle users:** Replace the Maven steps with `./gradlew lab07:build`, `./gradlew lab07:cyclonedxBom`, and `./gradlew lab07:dependencyCheckAnalyze`. Adjust artifact paths from `target/` to `build/reports/`.
+
+4. Commit the pipeline:
+   ```bash
+   git add .github/workflows/lab07-pipeline.yml
+   git commit -m "lab07: Add CI/CD pipeline with supply-chain gates"
+   git push origin lab07/pr-workflow
+   ```
+
+**Azure Pipelines track (alternative):**
+
+If your team uses Azure DevOps Repos, create `azure-pipelines.yml` at the repo root:
+
+1. Ask Copilot:
+   ```
+   Chat prompt: "Translate the Lab07 GitHub Actions pipeline into Azure Pipelines YAML with
+   equivalent stages: Build → Scan → ValidateIaC → ManualApproval → Deploy (dry-run).
+   Use Maven (Java 17) for build and OWASP Dependency Check for CVE scanning.
+   Use 'condition: failed()' for evidence-upload tasks and an ADO Environment named
+   'production' for the approval gate."
+   ```
+
+2. Key structural differences:
+
+   | Concept | GitHub Actions | Azure Pipelines |
+   |---------|---------------|-----------------|
+   | Job sequencing | `needs:` | `dependsOn:` inside `stages:` |
+   | Conditional steps | `if: failure()` | `condition: failed()` |
+   | Manual gate | GitHub Environment + required reviewers | ADO Environment + Approvals and checks |
+   | Artifact upload | `upload-artifact` action | `PublishBuildArtifacts` task |
+   | IaC validation failure | `echo "::error::"` | `Write-Host "##vso[task.logissue type=error]"` |
+
+---
+
+#### Task 2: Configure required status checks (5 min)
+
+Required status checks turn optional CI runs into **merge blockers**. Without this step, the pipeline is advisory — a developer can merge even if `scan` is red.
+
+**GitHub branch protection:**
+
+1. Go to **Settings → Branches → Add branch protection rule** for `main`
+2. Enable **"Require status checks to pass before merging"**
+3. Search for and add these as required checks:
+   - `scan`
+   - `validate-iac`
+4. Enable **"Require branches to be up to date before merging"**
+
+   > Copilot prompt: `"What branch protection settings enforce supply-chain security gates on a Java Maven repo? Include status checks and signed commits."`
+
+**GitHub Environment for manual approval:**
+
+1. Go to **Settings → Environments → New environment** → name it `production`
+2. Add **Required reviewers** (yourself or a teammate)
+3. The `manual-approval` job will pause at this gate until a reviewer approves in the Actions UI
+
+**Azure DevOps equivalent:**
+
+1. Go to **Pipelines → Environments → New environment** → name it `production`
+2. Add an **Approvals and checks** rule with required approvers
+3. Reference it in the `ManualApproval` stage — the pipeline blocks until approved
+
+---
+
+#### Task 3: Verify gate behavior (5 min)
+
+1. **Break the CVE scan intentionally** — add a known-vulnerable dependency to `pom.xml`:
+   ```xml
+   <!-- Add inside <dependencies> — Spring Framework with known CVEs -->
+   <dependency>
+     <groupId>org.springframework</groupId>
+     <artifactId>spring-core</artifactId>
+     <version>5.2.0.RELEASE</version>
+   </dependency>
+   ```
+   ```bash
+   git add lab07/pom.xml
+   git commit -m "lab07: TEST — introduce CVE to verify gate"
+   git push origin lab07/pr-workflow
+   ```
+
+2. **Observe the pipeline run:**
+   - The `scan` job should fail
+   - `validate-iac`, `manual-approval`, and `deploy` should never start
+   - The `cve-report` artifact should be downloadable from the failed run
+   - The PR merge button should be blocked (if required status checks are configured)
+
+3. **Ask Copilot to review your pipeline:**
+   ```
+   Chat prompt: "Review this GitHub Actions pipeline for supply-chain security best practices:
+   - Are job dependencies correctly sequenced with 'needs:'?
+   - Are failure handlers using 'if: failure()' in the right places?
+   - Is the manual approval gate positioned correctly in the flow?
+   - What additional hardening would you recommend (pinned action SHAs,
+     OIDC federation instead of long-lived secrets, artifact attestation)?"
+   ```
+
+4. **Revert the intentional CVE and push a clean commit:**
+   ```bash
+   git add lab07/pom.xml
+   git commit -m "lab07: Revert test CVE — restore clean pom.xml"
+   git push origin lab07/pr-workflow
+   ```
+
+### Key Insight
+
+Embedding SBOM generation and CVE scanning as **pipeline job steps** with `if: failure()` gates and required-status-check enforcement is the difference between *documenting* supply-chain policy and *enforcing* it. Manual approval gates ensure that every deployment to production has a human sign-off — after all automated gates pass, never before.
+
+---
+
+## Part 5 — Infrastructure-as-Code + GitOps (25 min)
+
+Modern infrastructure must be **versioned** and **auditable**. This section teaches IaC fundamentals alongside GitOps patterns.
+
+### Subsection A: Infrastructure-as-Code Fundamentals (18 min)
 
 You have **two tracks**: Choose Bicep (Azure-native) or Terraform (multi-cloud).
 
@@ -503,7 +676,6 @@ Terraform is a cloud-agnostic IaC tool supporting AWS, Azure, GCP, and more.
      Use the Microsoft Learn MCP to fetch official Terraform examples for:
      - Azure Resource Group with naming conventions
      - Azure Container Apps for deploying a Java Spring Boot container
-     - Application Insights for observability
 
      Generate a Terraform configuration that demonstrates modern cloud deployment.
      Include comments explaining resource dependencies.
@@ -577,66 +749,54 @@ GitOps means **Git is your single source of truth for infrastructure and deploym
    - Multiple environments can be managed as code branches
    - Drift detection: Compare Git state vs. actual infrastructure
 
-### Subsection C: Observability & Monitoring (5 min)
-
-Deployed infrastructure without observability is operationally blind. By 2026, monitoring is non-negotiable.
-
-#### Your task
-
-1. **Add monitoring to your IaC:**
-   - For Bicep, ask Copilot:
-     ```
-     Add an Azure Application Insights resource to this Bicep file for monitoring.
-     Configure it to track:
-     - JVM metrics and garbage collection
-     - HTTP request latency and error rates
-     - Custom business events
-     ```
-
-   - For Terraform, ask Copilot:
-     ```
-     Add an azurerm_application_insights resource to this Terraform configuration.
-     Include outputs that show the instrumentation key and workspace ID.
-     ```
-
-2. **Configure basic logging:**
-   ```bash
-   # Document where logs will be sent
-   # In your IaC, add:
-   # - Log destination (Azure Monitor, CloudWatch, DataDog, etc.)
-   # - Log retention policy
-   # - Alert thresholds for critical events
-   ```
-
-3. **Commit your observability setup:**
+3. **Commit your IaC:**
    ```bash
    git add main.bicep  # or main.tf/variables.tf/outputs.tf
-   git commit -m "lab07: Add IaC with GitOps and observability patterns"
+   git commit -m "lab07: Add IaC with GitOps pattern"
    git push origin lab07/pr-workflow
    ```
 
 ### Key Insight
 
 **Infrastructure-as-Code** ensures your infrastructure is versioned and reproducible.  
-**GitOps** ensures all changes flow through Git and CI/CD, never manual.  
-**Observability** ensures you know what's happening in production.
-
-Together, they form the foundation of **reliable, auditable, 2026-grade DevOps**.
+**GitOps** ensures all changes flow through Git and CI/CD, never manual.
 
 ---
 
-## Part 5 — Merge, Validate & Cost Review (8 min)
+## Part 6 — Open PR, Validate, Cost Review & Deploy (13 min)
 
 ### Your tasks
 
-#### Task 1: Validate YAML & containers (3 min)
+#### Task 1: Open your pull request (2 min)
 
-1. **Validate your YAML files:**
+You now have real artifacts to ship. Use Copilot to write the PR description from your branch diff — not from the placeholder you drafted in Part 1.
+
+1. **Ask Copilot to write the PR description from your diff:**
+   ```
+   Chat prompt: “Write a PR description for the lab07/pr-workflow branch (Java/Spring Boot).
+   Summarise: the SBOM and CVE scan findings (Part 2), the CI/CD pipeline
+   structure with its security gates (Part 4), and the IaC resources defined
+   (Part 5). Include the supply chain security checklist and cost estimate
+   placeholder.”
+   ```
+
+2. **Open the PR:**
+   - GitHub: use `/createPullRequest` in Copilot Chat, or repository → Pull requests → New pull request
+   - Azure DevOps: Repos → Pull requests → New pull request
+
+3. **Reference tracker items:**
+   - Group A (ADO work items): `AB#<ID>`
+   - Group B (Jira): `PROJ-<ID>`
+   - GitHub Issues: `Closes #<ID>`
+
+#### Task 2: Validate containers (2 min)
+
+1. **Validate your docker-compose.yml:**
    ```bash
-   # Validate generic config.yml (python3 available in most devcontainers)
-   python3 -c "import yaml; yaml.safe_load(open('config.yml')); print('✓ config.yml is valid')"
+   # Check syntax (requires Docker)
+   docker compose config
 
-   # Or ask Copilot to validate docker-compose.yml:
+   # Or ask Copilot:
    # "Validate this docker-compose.yml for syntax and best practices"
    ```
 
@@ -645,7 +805,7 @@ Together, they form the foundation of **reliable, auditable, 2026-grade DevOps**
    - No trailing spaces
    - All required fields are present
 
-#### Task 2: Validate infrastructure code (2 min)
+#### Task 3: Validate infrastructure code (2 min)
 
 1. **Validate Bicep or Terraform (no deployment):**
    ```bash
@@ -668,9 +828,7 @@ Together, they form the foundation of **reliable, auditable, 2026-grade DevOps**
    Flag any issues and suggest fixes."
    ```
 
-#### Task 3: Cost estimation (3 min)
-
-**This is NEW in 2026 DevOps best practices.**
+#### Task 4: Cost estimation (3 min)
 
 1. **Estimate deployment cost with Copilot:**
    ```
@@ -711,14 +869,11 @@ Together, they form the foundation of **reliable, auditable, 2026-grade DevOps**
    git push origin lab07/pr-workflow
    ```
 
-#### Task 4: Merge when ready (optional)
+#### Task 5: Merge when ready (optional)
 
-When your PR passes all validations:
+When your PR passes all gates and a reviewer approves:
 
 ```bash
-# After reviewing and validating everything locally
-# (Don't actually deploy to Azure — just validate locally)
-
 # Merge to main
 git checkout main
 git pull origin main
@@ -732,20 +887,21 @@ git push origin --delete lab07/pr-workflow
 
 ### Key Insight
 
-By 2026, validation includes not just syntax and security, but also **cost awareness**. Engineers who understand infrastructure economics are more valuable to their teams.
+Validation covers syntax, security, and **cost awareness**. Engineers who understand infrastructure economics ship more confidently.
 
 ---
 
 ## Summary
 
-In this lab, you've learned **2026 DevOps best practices** with a Java toolchain:
+In this lab, you’ve practised **Copilot-assisted deployment** with a Java toolchain:
 
-✅ **Supply Chain Security** — CycloneDX SBOM from Maven/Gradle + OWASP Dependency Check  
-✅ **Container Fundamentals** — Docker Compose + YAML for reproducible Java deployments  
-✅ **GitOps Patterns** — Git as source of truth for infrastructure  
-✅ **Observability** — Monitoring and logging as first-class infrastructure concerns  
-✅ **Cost Awareness** — Understanding infrastructure economics and optimization  
-✅ **Infrastructure-as-Code** — Bicep or Terraform for auditable, versionable infrastructure  
-✅ **Code Review Culture** — Leverage Copilot to accelerate (not replace) human review  
+✅ **Supply Chain Security** — CycloneDX SBOM from Maven/Gradle + OWASP Dependency Check as enforced pipeline gates  
+✅ **Containerised Deployment** — Docker Compose generated and validated with Copilot for Spring Boot  
+✅ **CI/CD Pipeline Authoring** — build → scan → validate-iac → approval → deploy in GitHub Actions or Azure Pipelines  
+✅ **Policy-as-Code** — CVE and IaC failures as required status checks, not markdown checklists  
+✅ **Infrastructure-as-Code** — Bicep or Terraform generated with Copilot + MCP, validated locally  
+✅ **GitOps Patterns** — Git as single source of truth for infrastructure state  
+✅ **Cost Awareness** — Copilot-assisted infrastructure economics before deployment  
+✅ **PR Authoring** — Copilot writes the PR description from your branch diff, not from a template  
 
-These skills form the foundation of **modern DevOps + GitOps + Security** practices expected in 2026 and beyond.
+These skills form the foundation of **Copilot-assisted DevOps** practice.
