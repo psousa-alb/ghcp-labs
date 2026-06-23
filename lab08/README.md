@@ -1,356 +1,202 @@
-# Lab 08 — The Agentic SDLC Loop (Capstone)
+# Walkthrough: Building a Task Board App (Greenfield)
 
-**Duration:** ~1 hour  
-**SDLC Phase:** The Full Loop  
-**Autonomy Level:** 🔴🔴 Agent runs the full loop autonomously  
-**Prerequisites:** Labs 01–07 completed, all tools installed
+Build a kanban Task Board app — from a one-page PRD to a live Azure deployment — in about 2 hours. This walkthrough mirrors the [spec2cloud Microhack](https://github.com/EmeaAppGbb/spec2cloud-microhack-greenfield) and shows what each phase looks like in practice.
 
----
+> **The core idea:** The most valuable asset in a codebase is not the code — it's the specification. Code is an implementation detail. With AI agents, it's also increasingly throwable. Given a good enough spec, you can regenerate the implementation at any time. What you can't regenerate is a precise, verified description of what the software is supposed to do.
 
-## Learning Objective
+## What You'll Build
 
-Wire up the **complete Agentic SDLC loop**: a feature request comes in → an agent researches → plans → codes → tests → reviews → secures → ships. You are the **architect and approver**. The agent does the work.
+A minimal kanban board: create tasks, move them through *To Do → In Progress → Done*, delete when finished. No login, no database — just an in-memory store. Simple enough to build in one session, complex enough to exercise the full pipeline.
 
-This is the capstone. Everything you learned in Labs 01–07 comes together.
+## Starting Point
 
----
-
-## What You'll Practice
-
-| Part | SDLC Phase | Time | What Happens |
-|------|-----------|------|-------------|
-| **1** | Research | 5 min | Agent analyzes the codebase and feature request |
-| **2** | Plan | 5 min | Agent creates an implementation plan |
-| **3** | Code | 15 min | Agent implements the feature (Agent Mode) |
-| **4** | Test | 10 min | Agent writes and runs tests (coverage gate) |
-| **5** | Review | 5 min | Agent reviews its own code against standards |
-| **6** | Secure | 5 min | Agent runs security scan |
-| **7** | Ship | 15 min | CI pipeline + Agentic Workflow ties it all together |
+A one-page PRD you write yourself, describing the Task Board in your own words. 5 user stories is plenty — the agents will ask clarifying questions if anything is ambiguous.
 
 ---
 
-## Setup
+## Phase 0: Shell Setup (~15 min)
+
+Create a repo from a shell template and connect to Azure:
 
 ```bash
-cd lab08
-pip install pytest pytest-cov
+gh repo create my-task-board --template EmeaAppGbb/spec2cloud-shell-nextjs-typescript
+cd my-task-board
+npm install && cd src/web && npm install && cd ../.. && cd src/api && npm install && cd ../..
+azd auth login && azd env new microhack && azd env set AZURE_LOCATION swedencentral
 ```
 
----
+You get: Next.js + Express + Playwright + Cucumber + Vitest + Bicep — all pre-wired with Aspire orchestration and 46 agentskills.io skills.
 
-## The Scenario
+> **Alternative shells:** The same pipeline works with [Python (FastAPI)](https://github.com/EmeaAppGbb/shell-python), [Java (Spring Boot)](https://github.com/EmeaAppGbb/shell-java), or [.NET (ASP.NET Core)](https://github.com/EmeaAppGbb/shell-dotnet). The orchestrator and skills are stack-agnostic.
 
-You have `feature_tracker.py` — a system that tracks features through SDLC stages. You'll receive a **feature request** and guide an agent through the entire development lifecycle, from research to deployment.
+## Step 1: Write Your PRD (~20 min)
 
-### The Feature Request
+This is the only step where you write anything substantial. Open `specs/prd.md`
+and describe your Task Board — what it does, who uses it, what the key user
+stories are, and any constraints (in-memory, no auth). If the workflow is
+non-trivial, start the PRD with a Mermaid process or journey diagram before the
+written sections.
 
-> **FEAT-0001: Add a notification system**
->
-> When a feature moves between SDLC stages (e.g., from "planned" to "in_progress"),
-> notify the requester via email and log the notification. Support multiple
-> notification channels (email, Slack, webhook). Include rate limiting to prevent
-> notification spam during rapid status changes.
+> **Why this matters:** Your PRD is the ground truth everything traces back to. The more deliberately you write it, the more meaningful the verification is at every downstream gate. Vague requirements lead to passing tests that don't actually prove anything.
 
-This is deliberately complex enough to require all SDLC phases.
+Then kick off the orchestrator. Start Copilot CLI in autonomous mode and use fleet to begin:
 
----
-
-## Part 1 — Research (5 min)
-
-The agent needs to understand the codebase before planning.
-
-### Your task
-
-Open **Agent Mode** and prompt:
-
-```
-I need to implement a notification system for feature_tracker.py.
-
-Before writing any code, research the existing codebase:
-1. What classes and patterns exist?
-2. Where are the extension points?
-3. What would a notification system need to integrate with?
-4. Are there any existing patterns I should follow?
-
-Give me a research summary, not code.
-```
-
-### What to observe
-- Does the agent read the file before answering?
-- Does it identify `advance_to()` and `log_phase()` as integration points?
-- Does it note the dataclass + Enum patterns?
-
-### Approve or redirect
-If the research is solid, tell the agent: *"Good research. Now create a plan."*
-
----
-
-## Part 2 — Plan (5 min)
-
-### Your task
-
-Continue in Agent Mode:
-
-```
-Create a detailed implementation plan for the notification system.
-
-The plan should include:
-1. New classes/models needed (follow the dataclass + Enum patterns)
-2. Files to create and modify
-3. How notifications integrate with advance_to()
-4. Rate limiting strategy (e.g., max 1 notification per feature per 5 minutes)
-5. Tests to write (list specific test cases)
-6. Security considerations (no credentials in code, etc.)
-
-Output the plan as a structured document. Don't implement yet.
-```
-
-### Review the plan
-Before saying "implement":
-- [ ] Does it create a `NotificationChannel` enum?
-- [ ] Does it create `Notification` and `NotificationService` classes?
-- [ ] Does it modify `advance_to()` to trigger notifications?
-- [ ] Does it include rate limiting logic?
-- [ ] Does it list 5+ test cases?
-- [ ] Does it mention env vars for credentials?
-
-### Approve
-*"Plan looks good. Implement it."*
-
----
-
-## Part 3 — Code (15 min)
-
-### Your task
-
-The agent should now implement the plan. If it stopped after planning, prompt:
-
-```
-Implement the notification system according to the plan.
-Create all necessary files and modify feature_tracker.py.
-Follow the existing patterns (dataclasses, Enums, type hints).
-Use environment variables for any credentials or URLs.
-```
-
-### What to observe
-- Does it create clean, well-structured code?
-- Does it follow the existing patterns?
-- Does it handle edge cases (no notification channels configured, rate limited, etc.)?
-- Does it modify `advance_to()` to trigger notifications?
-
-If it stops mid-implementation: *"Continue — finish implementing all the classes."*
-
----
-
-## Part 4 — Test (10 min)
-
-### Your task
-
-```
-Write comprehensive tests for the notification system.
-Requirements:
-- Use pytest with factory fixtures
-- Mock external notification channels (don't send real emails/webhooks)
-- Test rate limiting (mock time or inject timestamps)
-- Test all notification channels
-- Test the integration with advance_to()
-- Run the tests and fix any failures
-- Target 85%+ coverage on the new code
-```
-
-### What to observe
-- Does the agent write tests, run them, and iterate on failures?
-- Does it check coverage and add more tests?
-- This is the **run-fix loop** from Lab 06 — the agent's core strength.
-
-### Verify yourself
 ```bash
-pytest tests/ --cov=feature_tracker --cov-report=term-missing -v
+copilot --yolo
+```
+
+Then in the Copilot session:
+
+```
+/fleet I want to start the spec2cloud flow, the prd is already created, lets start with the review process and continue
 ```
 
 ---
 
-## Part 5 — Review (5 min)
+## Phase 1: Product Discovery (~30 min)
 
-### Your task
+### 1a — Spec Refinement
+The orchestrator reviews your PRD through product and technical lenses, splits it into FRDs, and flags gaps. Expect files like `specs/frd-tasks.md` and `specs/frd-board.md`.
 
-Now the agent reviews its own work:
+> **💡 Best practice:** Don't just accept the agent's fixes wholesale. Ask it to address gaps **one by one** and really pay attention to each proposed change. It's good practice to run the review multiple times until you're confident the PRD captures exactly what you want. Once the PRD is solid, ask the agent to review each FRD with the same rigour — treat FRDs as first-class specs, not just generated artifacts.
 
-```
-Review the notification system you just implemented.
-Check against these criteria:
-1. Does it follow the existing patterns (dataclasses, Enums, type hints)?
-2. Are there any code smells or DRY violations?
-3. Is error handling consistent?
-4. Are all public methods documented?
-5. Would a new developer understand this code?
+🚦 **Human Gate — spec verification:** Check that every user story from your PRD is represented in an FRD with clear acceptance criteria. If something is wrong here, fix it now — anything that slips through will be tested, implemented, and deployed as-is.
 
-If you find issues, fix them.
-```
+### 1b — UI/UX Design
+Interactive HTML wireframe prototypes are generated and served on localhost. Walk through the board layout, task creation, edit/delete flows.
 
-### What to observe
-- Can the agent critically evaluate its own code?
-- Does it find real issues or just say "looks good"?
-- Does it actually fix what it finds?
+🚦 **Human Gate — prototype verification:** Does the UI match what you had in mind when you wrote the PRD? An adjustment here costs seconds. The same change post-implementation costs much more.
 
----
+### Optional — DDD Modeling
+If the app has rich business rules, multiple subdomains, or non-trivial data
+ownership, ask Copilot to run `ddd-modeling` before increment planning. That
+produces `specs/domain/proposals.md`, `specs/domain/domain-model.md`, and
+`specs/domain/database-model.md` to make bounded contexts and aggregate
+boundaries explicit.
 
-## Part 6 — Secure (5 min)
+### 1c — Increment Planning
+FRDs are broken into ordered increments. A typical plan:
 
-### Your task
+| Increment | What ships |
+|-----------|-----------|
+| 1 | Walking skeleton — empty board, API health check, wired up and deployed |
+| 2 | Task CRUD — create, read, delete tasks; board renders tasks in correct column |
+| 3 | Status transitions — move tasks forward/back; edit title and description |
 
-```
-Perform a security review of the notification system:
-1. Are there any hardcoded credentials or API keys?
-2. Is user input validated before being used in notifications?
-3. Could a malicious feature title cause injection in email/Slack messages?
-4. Is rate limiting bypassable?
-5. Are there any OWASP Top 10 concerns?
+🚦 **Human Gate:** Approve the plan or ask to reorder.
 
-Fix any issues you find.
-```
+### 1d — Tech Stack Resolution
+Every library is inventoried, researched via live docs, and pinned. Output: `specs/tech-stack.md` with ADRs for key decisions.
 
-### What to observe
-- Does it catch input validation concerns (XSS in notification body)?
-- Does it verify credentials are from env vars?
-- Does it consider rate limit bypass scenarios?
+🚦 **Human Gate:** Tech stack approved.
 
 ---
 
-## Part 7 — Ship (15 min)
+## Phase 2: Increment Delivery (~60–75 min)
 
-### 7a: CI Pipeline
+Each increment runs four steps automatically:
 
-Create a GitHub Actions workflow that runs the full quality gate:
+### Step 1 — Test Scaffolding
+Tests are derived **directly from the Gherkin scenarios** in your FRDs — before any implementation code is written:
+- **Gherkin feature files** — plain-English scenarios from your acceptance criteria
+- **Playwright e2e tests** — browser-level flows (create task → move → delete)
+- **Cucumber step definitions** — wiring Gherkin to executable code
+- **Vitest unit tests** — API endpoint coverage
 
-```
-Create .github/workflows/sdlc-gate.yml that:
-1. Runs pytest with coverage (fail under 85%)
-2. Runs a basic security scan (check for hardcoded secrets)
-3. Runs linting
-4. Only passes if ALL gates pass
-```
+🚦 **Human Gate — test verification:** Read the Gherkin scenarios. Do they describe the behaviour you wrote in your PRD? This is the most important gate in the entire pipeline — tests are the spec in executable form. If they're wrong, the implementation will be wrong too, and it will pass every test while doing so.
 
-Test it locally:
+After approval, the **red baseline** is established: all new tests fail (proving they're real), existing tests still pass.
+
+### Step 2 — Contracts
+API contracts, shared TypeScript types, and infrastructure requirements are generated. No human gate — contracts flow directly from the tests.
+
+### Step 3 — Implementation
+Three slices run:
+
+| Slice | What gets built |
+|-------|----------------|
+| **API slice** | Express routes, in-memory store, input validation |
+| **Web slice** | Next.js board page, task cards, create/edit form, status controls |
+| **Integration** | API + Web running together, full regression green |
+
+> **💡 Try it live:** Aspire is already running in the background. Ask the agent for the Aspire dashboard URL and open your app in the browser. Click around, test the flows, and see if anything feels off. If you spot bugs or issues, ask the agent to fix them — it can use the Aspire and Playwright MCP tools to diagnose and resolve problems interactively. It's much cheaper to catch issues here than after deployment.
+
+If the runtime flow is easier to understand visually, ask the agent to update
+`specs/prd.md` with an as-built Mermaid implementation diagram before you do the
+implementation review.
+
+🚦 **Human Gate — implementation verification:** Review the diff. Does this match what you approved in the Gherkin? Tests passing is necessary — but not sufficient. You're verifying the *right* implementation, not just a green one.
+
+### Step 4 — Deploy to Azure
 ```bash
-pytest tests/ --cov=feature_tracker --cov-fail-under=85 -v
+azd provision   # Container Apps, ACR, monitoring
+azd deploy      # Build containers, push, deploy
 ```
 
-### 7b: Agentic Workflow (The Full Loop)
+Smoke tests run against the live URL — the same tests derived from your spec.
 
-Create `.github/workflows/feature-sdlc.md` — an Agentic Workflow that automates the entire loop:
+🚦 **Human Gate — deployment verification:** Open the live app and walk through your original PRD user stories. Not the tests — *your original words*.
 
-```markdown
 ---
-name: feature-sdlc
-description: >
-  Complete SDLC loop: when a new feature issue is created,
-  research the codebase, plan the implementation, code it,
-  write tests, review, security scan, and open a PR.
 
-triggers:
-  - on: issues
-    types: [opened]
-    labels: [feature-request]
+## Verify Your Live App (~10 min)
 
-steps:
-  - name: Research
-    prompt: |
-      Read the codebase. Understand the architecture and patterns.
-      Summarize what exists and where the new feature should integrate.
-
-  - name: Plan
-    prompt: |
-      Create an implementation plan for the feature described in the issue.
-      Include: new files, modified files, test cases, security considerations.
-
-  - name: Implement
-    prompt: |
-      Implement the feature according to the plan.
-      Follow existing patterns. Use environment variables for secrets.
-
-  - name: Test
-    prompt: |
-      Write tests. Run them. Fix failures. Target 85% coverage.
-
-  - name: Review
-    prompt: |
-      Review the implementation against project conventions.
-      Fix any issues found.
-
-  - name: Security Scan
-    prompt: |
-      Check for OWASP Top 10 vulnerabilities.
-      Verify no hardcoded secrets. Fix any issues.
-
-  - name: Open PR
-    run: |
-      git checkout -b feat/${{ issue.number }}
-      git add -A
-      git commit -m "feat: ${{ issue.title }}"
-      git push -u origin feat/${{ issue.number }}
-      gh pr create --title "${{ issue.title }}" --body "Closes #${{ issue.number }}"
-```
-
-### 7c: Try it
-
-If you have `gh aw` installed:
 ```bash
-gh extension install github/gh-aw
-gh aw compile .github/workflows/feature-sdlc.md
-gh aw run feature-sdlc
+azd env get-values | grep SERVICE_WEB_ENDPOINT_URL
 ```
 
-Or simulate it by running each step manually through Agent Mode.
+Open the URL and manually verify:
+1. Create three tasks — one for each column
+2. Move a task from To Do → In Progress → Done
+3. Edit a task title
+4. Delete a task
 
 ---
 
-## The Complete Agentic SDLC Loop
+## What Just Happened?
 
-Congratulations — you've wired up the full loop:
+| Phase | What the agents did | What you verified |
+|-------|-------------------|------------------|
+| Spec Refinement | Turned your PRD into traceable FRDs | Every user story is correctly interpreted |
+| UI/UX Design | Generated interactive wireframes | The UI matches your intent |
+| Increment Planning | Ordered delivery, walking skeleton first | Scope and ordering make sense |
+| Tech Stack | Pinned correct library versions via live docs | Stack is appropriate |
+| Test Scaffolding | Derived full test suite from FRDs | Tests faithfully express your acceptance criteria |
+| Contracts | Generated API specs and shared types | — |
+| Implementation | Wrote backend + frontend to make tests green | Implementation matches the Gherkin |
+| Deployment | Provisioned Azure infra, ran smoke tests | PRD user stories work end-to-end in production |
 
-```
-📋 Feature Request
-      ↓
-🔍 Research (Agent reads codebase)
-      ↓
-📝 Plan (Agent creates implementation plan)
-      ↓
-💻 Code (Agent implements — Agent Mode)
-      ↓
-🧪 Test (Agent writes tests, runs them, iterates)
-      ↓
-👀 Review (Agent reviews its own code)
-      ↓
-🔒 Secure (Agent scans for vulnerabilities)
-      ↓
-🚀 Ship (CI pipeline validates, PR is opened)
-      ↓
-🔄 Iterate (if anything fails, agent fixes and re-runs)
+You wrote zero production code. You wrote a spec — and that spec drove every test, every line of implementation, and every deployment check.
+
+---
+
+## Tear Down
+
+```bash
+azd down
 ```
 
 ---
 
-## Lab Complete! Here's What You Practiced Across All 8 Labs:
+## Going Further
 
-| Lab | SDLC Phase | Autonomy |
-|-----|-----------|----------|
-| **01** Code Generation Fundamentals | Code | Human writes, Copilot suggests |
-| **02** Testing with Copilot | Test | Human directs, Copilot generates |
-| **03** Debugging & Troubleshooting | Debug | Human points, Copilot fixes |
-| **04** Context Engineering | Standards | Human configures, Copilot follows |
-| **05** Code Review & Refactoring | Review | Human asks, Agent researches |
-| **06** Agent Mode | Code+Test+Debug | Human approves, Agent implements |
-| **07** Release Workflow and Infrastructure as Code | Integration → Deployment → Release | Human reviews, Copilot automates |
-| **08** The Agentic SDLC Loop | Full Loop | Agent runs autonomously |
+- **Change your PRD mid-hack:** Add a new user story to an FRD and run Phase 2 for a new increment.
+- **Explore the skills:** Read `.github/skills/spec-refinement/SKILL.md` to see how the agent reasons through a spec.
+- **Try a different shell:** Replace the TypeScript shell with Python, Java, or .NET — the pipeline doesn't care what stack you're on.
+- **Add persistence:** Write a `specs/frd-persistence.md` and let agents wire up Cosmos DB or PostgreSQL.
+- **Run the full lab:** The structured [Microhack Lab](https://github.com/EmeaAppGbb/spec2cloud-microhack-greenfield/tree/main/docs/microhack-lab) has challenges, solutions, and detailed facilitator guides.
 
-### The Progression
+---
 
-```
-Lab 01-03:  Copilot as a TOOL         → you do the work, Copilot helps
-Lab 04-05:  Copilot as a TEAM MEMBER  → you set standards, Copilot follows
-Lab 06-07:  Copilot as a DEVELOPER    → you approve, Copilot does the work
-Lab 08:     Copilot as a PIPELINE     → the loop runs itself
-```
+## Troubleshooting
 
-> **The Agentic SDLC isn't about replacing developers. It's about turning the entire development lifecycle into an automated, quality-gated pipeline where AI handles the routine and humans focus on architecture, design, and approval.**
+| Symptom | Fix |
+|---------|-----|
+| Agent stuck in a loop | Ask: *"read the resume skill and continue from current state"* |
+| Tests failing after implementation | Ask: *"run the test runner skill and fix any failures"* |
+| Smoke tests fail after deploy | Agent auto-rolls back — review failure and re-approve |
+| Wireframes not loading | Check terminal for the HTTP server URL |
+
+---
+
+[← Back to Examples](../examples/) | [Brownfield: Testable App →](brownfield-testable.md)
