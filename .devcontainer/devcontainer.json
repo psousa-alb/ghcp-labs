@@ -2,7 +2,7 @@
     "build": {
         "dockerfile": "Dockerfile"
     },
-    "initializeCommand": "if [ ! -d ${localEnv:HOME}/.ssh ]; then mkdir -p ${localEnv:HOME}/.ssh; fi; if [ ! -d ${localEnv:HOME}/.gnupg ]; then mkdir -p ${localEnv:HOME}/.gnupg; chmod 700 ${localEnv:HOME}/.gnupg; fi",
+    "initializeCommand": "if [ ! -d ${localEnv:HOME}/.ssh ]; then mkdir -p ${localEnv:HOME}/.ssh; fi; if [ ! -d ${localEnv:HOME}/.gnupg ]; then mkdir -p ${localEnv:HOME}/.gnupg; fi",
     "mounts": [
         "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,readonly",
         "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
